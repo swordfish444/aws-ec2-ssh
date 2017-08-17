@@ -99,7 +99,7 @@ Resources:
         Version: '2012-10-17'
         Statement:
         - Effect: Allow
-          Action: 
+          Action:
           - 'iam:ListUsers'
           - 'iam:GetGroup'
           Resource: '*'
@@ -122,15 +122,15 @@ Resources:
             yum:
               git: []
           files:
-            '/opt/install.sh':
-              source: 'https://raw.githubusercontent.com/widdix/aws-ec2-ssh/master/install.sh'
+            '/root/.local/bin/install_iam_sync':
+              source: 'https://raw.githubusercontent.com/swordfish444/aws-ec2-ssh/master/install_iam_sync'
               mode: '000755'
               owner: root
               group: root
           commands:
             a_install:
-              command: !Sub './install.sh -a "${AssumeRole}"'
-              cwd: '/opt'
+              command: !Sub './install_iam_sync -a "${AssumeRole}"'
+              cwd: '/root/.local/bin'
           services:
             sysvinit:
               sshd:
@@ -144,8 +144,8 @@ Resources:
       UserData:
         'Fn::Base64': !Sub |
           #!/bin/bash -x
-          /opt/aws/bin/cfn-init --verbose --stack=${AWS::StackName} --region=${AWS::Region} --resource=Instance
-          /opt/aws/bin/cfn-signal --exit-code=$? --stack=${AWS::StackName} --region=${AWS::Region} --resource=Instance
+          /root/.local/bin/aws/bin/cfn-init --verbose --stack=${AWS::StackName} --region=${AWS::Region} --resource=Instance
+          /root/.local/bin/aws/bin/cfn-signal --exit-code=$? --stack=${AWS::StackName} --region=${AWS::Region} --resource=Instance
       NetworkInterfaces:
       - AssociatePublicIpAddress: true
         DeleteOnTermination: true

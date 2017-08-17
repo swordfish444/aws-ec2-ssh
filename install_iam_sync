@@ -75,16 +75,22 @@ do
     esac
 done
 
+if [ ! -d /usr/bin/iam ]; then
+  mkdir -p /usr/bin/iam;
+fi
+
 tmpdir=$(mktemp -d)
 
 cd "$tmpdir"
 
-git clone https://github.com/widdix/aws-ec2-ssh.git
+git clone https://github.com/swordfish444/aws-ec2-ssh.git
 
 cd "$tmpdir/aws-ec2-ssh"
 
-cp authorized_keys_command.sh /opt/authorized_keys_command.sh
-cp import_users.sh /opt/import_users.sh
+cp authorized_keys_command.sh /usr/bin/iam/authorized_keys_command.sh
+cp import_users /usr/bin/iam/import_users
+chmod a+x /usr/bin/iam/authorized_keys_command.sh
+
 
 if [ "${IAM_GROUPS}" != "" ]
 then
@@ -116,18 +122,15 @@ then
     echo "USERADD_ARGS=\"${USERADD_ARGS}\"" >> /etc/aws-ec2-ssh.conf
 fi
 
-sed -i 's:#AuthorizedKeysCommand none:AuthorizedKeysCommand /opt/authorized_keys_command.sh:g' /etc/ssh/sshd_config
+sed -i 's:#AuthorizedKeysCommand none:AuthorizedKeysCommand /usr/bin/iam/authorized_keys_command.sh:g' /etc/ssh/sshd_config
 sed -i 's:#AuthorizedKeysCommandUser nobody:AuthorizedKeysCommandUser nobody:g' /etc/ssh/sshd_config
 
-cat > /etc/cron.d/import_users << EOF
-SHELL=/bin/bash
-PATH=/usr/local/bin:/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/sbin:/opt/aws/bin
-MAILTO=root
-HOME=/
-*/10 * * * * root /opt/import_users.sh
+chmod 700 /usr/bin/iam/import_users
+
+cat > /root/mycron << EOF
+*/10 * * * * /usr/bin/iam/import_users > /dev/null 2>&1
 EOF
-chmod 0644 /etc/cron.d/import_users
+crontab /root/mycron
+rm /root/mycron
 
-/opt/import_users.sh
-
-service sshd restart
+service ssh restart
