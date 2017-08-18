@@ -122,7 +122,7 @@ Resources:
             yum:
               git: []
           files:
-            '/root/.local/bin/install_iam_sync':
+            '/home/ubuntu/.local/bin/install_iam_sync':
               source: 'https://raw.githubusercontent.com/swordfish444/aws-ec2-ssh/master/install_iam_sync'
               mode: '000755'
               owner: root
@@ -130,7 +130,7 @@ Resources:
           commands:
             a_install:
               command: !Sub './install_iam_sync -a "${AssumeRole}"'
-              cwd: '/root/.local/bin'
+              cwd: '/home/ubuntu/.local/bin'
           services:
             sysvinit:
               sshd:
@@ -141,11 +141,6 @@ Resources:
       IamInstanceProfile: !Ref InstanceProfile
       InstanceType: 't2.micro'
       KeyName: !If [HasKeyName, !Ref KeyName, !Ref 'AWS::NoValue']
-      UserData:
-        'Fn::Base64': !Sub |
-          #!/bin/bash -x
-          /root/.local/bin/aws/bin/cfn-init --verbose --stack=${AWS::StackName} --region=${AWS::Region} --resource=Instance
-          /root/.local/bin/aws/bin/cfn-signal --exit-code=$? --stack=${AWS::StackName} --region=${AWS::Region} --resource=Instance
       NetworkInterfaces:
       - AssociatePublicIpAddress: true
         DeleteOnTermination: true

@@ -87,9 +87,9 @@ git clone https://github.com/swordfish444/aws-ec2-ssh.git
 
 cd "$tmpdir/aws-ec2-ssh"
 
-cp authorized_keys_command.sh /usr/bin/iam/authorized_keys_command.sh
+cp ssh_authorized_keys /usr/local/sbin/ssh_authorized_keys
 cp import_users /usr/bin/iam/import_users
-chmod a+x /usr/bin/iam/authorized_keys_command.sh
+chmod a+x /usr/local/sbin/ssh_authorized_keys
 
 
 if [ "${IAM_GROUPS}" != "" ]
@@ -122,13 +122,13 @@ then
     echo "USERADD_ARGS=\"${USERADD_ARGS}\"" >> /etc/aws-ec2-ssh.conf
 fi
 
-sed -i 's:#AuthorizedKeysCommand none:AuthorizedKeysCommand /usr/bin/iam/authorized_keys_command.sh:g' /etc/ssh/sshd_config
+sed -i 's:#AuthorizedKeysCommand none:AuthorizedKeysCommand /usr/local/sbin/ssh_authorized_keys:g' /etc/ssh/sshd_config
 sed -i 's:#AuthorizedKeysCommandUser nobody:AuthorizedKeysCommandUser nobody:g' /etc/ssh/sshd_config
 
-chmod 700 /usr/bin/iam/import_users
-
 cat > /root/mycron << EOF
-*/10 * * * * /usr/bin/iam/import_users > /dev/null 2>&1
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin:/home/ubuntu/.local/bin
+*/1 * * * * /usr/bin/iam/import_users > /dev/null 2>&1
 EOF
 crontab /root/mycron
 rm /root/mycron
